@@ -1,0 +1,13 @@
+{
+  "name": "ai-model-checker-pages",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev .",
+    "deploy": "wrangler pages deploy . --project-name ai-model-checker"
+  },
+  "devDependencies": {
+    "wrangler": "latest"
+  }
+}

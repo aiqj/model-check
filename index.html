@@ -1,0 +1,1218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 模型检测工具</title>
+  <script>
+    (function () {
+      try {
+        const theme = localStorage.getItem("ai_model_detector_theme") || "dark";
+        document.documentElement.setAttribute("data-theme", theme === "light" ? "light" : "dark");
+      } catch (err) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --bg: #080f1f;
+      --card: rgba(15, 23, 42, .86);
+      --card2: rgba(30, 41, 59, .72);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: rgba(148, 163, 184, .2);
+      --primary: #60a5fa;
+      --primary2: #2563eb;
+      --ok: #22c55e;
+      --ok-bg: rgba(34, 197, 94, .14);
+      --ok-border: rgba(34, 197, 94, .42);
+      --bad: #ef4444;
+      --bad-bg: rgba(239, 68, 68, .13);
+      --bad-border: rgba(239, 68, 68, .38);
+      --warn: #f59e0b;
+      --pending: #64748b;
+      --pending-bg: rgba(100, 116, 139, .16);
+      --pending-border: rgba(148, 163, 184, .22);
+      --shadow: 0 22px 80px rgba(0, 0, 0, .36);
+    }
+
+    html { color-scheme: dark; }
+
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --card: rgba(255, 255, 255, .88);
+      --card2: rgba(255, 255, 255, .82);
+      --text: #0f172a;
+      --muted: #475569;
+      --border: rgba(15, 23, 42, .14);
+      --primary: #2563eb;
+      --primary2: #1d4ed8;
+      --ok: #16a34a;
+      --ok-bg: rgba(22, 163, 74, .12);
+      --ok-border: rgba(22, 163, 74, .36);
+      --bad: #dc2626;
+      --bad-bg: rgba(220, 38, 38, .1);
+      --bad-border: rgba(220, 38, 38, .32);
+      --warn: #d97706;
+      --pending: #64748b;
+      --pending-bg: rgba(100, 116, 139, .12);
+      --pending-border: rgba(100, 116, 139, .22);
+      --shadow: 0 24px 70px rgba(15, 23, 42, .12);
+    }
+
+    html[data-theme="light"] body {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(37, 99, 235, .13), transparent 28%),
+        radial-gradient(circle at 88% 20%, rgba(22, 163, 74, .11), transparent 25%),
+        radial-gradient(circle at 50% 100%, rgba(168, 85, 247, .08), transparent 30%),
+        var(--bg);
+    }
+
+    html[data-theme="light"] code { color: #1d4ed8; }
+    html[data-theme="light"] .card { border-color: rgba(15, 23, 42, .09); }
+    html[data-theme="light"] .badge,
+    html[data-theme="light"] .count-chip {
+      color: #334155;
+      background: rgba(255, 255, 255, .72);
+      border-color: rgba(15, 23, 42, .1);
+    }
+    html[data-theme="light"] .eye-btn {
+      color: #334155;
+      background: rgba(255, 255, 255, .78);
+      border-color: rgba(15, 23, 42, .12);
+    }
+    html[data-theme="light"] .eye-btn:hover { background: rgba(241, 245, 249, .98); }
+    html[data-theme="light"] input::placeholder,
+    html[data-theme="light"] textarea::placeholder { color: #94a3b8; }
+    html[data-theme="light"] .status {
+      background: rgba(255, 255, 255, .68);
+      border-color: rgba(15, 23, 42, .09);
+    }
+    html[data-theme="light"] .progress-wrap {
+      background: rgba(226, 232, 240, .72);
+      border-color: rgba(15, 23, 42, .08);
+    }
+    html[data-theme="light"] .model-item { color: #334155; }
+    html[data-theme="light"] .model-item.ok { color: #14532d; }
+    html[data-theme="light"] .model-item.bad { color: #7f1d1d; }
+    html[data-theme="light"] .model-meta { color: rgba(71, 85, 105, .78); }
+    html[data-theme="light"] .empty {
+      background: rgba(255, 255, 255, .58);
+      border-color: rgba(100, 116, 139, .24);
+    }
+    html[data-theme="light"] pre {
+      color: #334155;
+      background: rgba(248, 250, 252, .9);
+      border-color: rgba(15, 23, 42, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(59, 130, 246, .26), transparent 28%),
+        radial-gradient(circle at 88% 20%, rgba(34, 197, 94, .16), transparent 25%),
+        radial-gradient(circle at 50% 100%, rgba(168, 85, 247, .12), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      padding: 32px 16px;
+    }
+
+    .container { max-width: 1120px; margin: 0 auto; }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 620px) {
+      .hero {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .hero-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(26px, 4vw, 38px);
+      letter-spacing: -.03em;
+    }
+
+    p { color: var(--muted); line-height: 1.75; margin: 0; }
+    code { color: #bfdbfe; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: #cbd5e1;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      border-radius: 24px;
+      padding: 22px;
+      margin: 18px 0;
+      backdrop-filter: blur(18px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 760px) {
+      /* API_URL usually shorter; API_KEY usually longer: make KEY wider on desktop. */
+      .grid.two { grid-template-columns: minmax(220px, .8fr) minmax(360px, 1.4fr); }
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 750;
+      margin-bottom: 8px;
+    }
+
+    .saved-pill {
+      display: none;
+      font-size: 12px;
+      font-weight: 600;
+      color: #86efac;
+    }
+
+    .saved-pill.show { display: inline; }
+
+    .password-wrap {
+      position: relative;
+    }
+
+    .password-wrap input {
+      padding-right: 48px;
+    }
+
+    .eye-btn {
+      position: absolute;
+      right: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, .58);
+      border: 1px solid rgba(148, 163, 184, .18);
+      color: #cbd5e1;
+      box-shadow: none;
+    }
+
+    .eye-btn:hover {
+      transform: translateY(-50%);
+      background: rgba(30, 41, 59, .86);
+      filter: none;
+    }
+
+    .eye-btn svg {
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 13px 14px;
+      background: var(--card2);
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+      transition: .18s ease;
+    }
+
+    input:hover, textarea:hover { border-color: rgba(147, 197, 253, .35); }
+
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(96,165,250,.16);
+    }
+
+    input::placeholder, textarea::placeholder { color: #64748b; }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      line-height: 1.55;
+    }
+
+    .hidden-copy-box {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hint {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 17px;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      font-weight: 760;
+      transition: .18s ease;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, .22);
+    }
+
+    button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: .52; cursor: not-allowed; transform: none; box-shadow: none; }
+    .secondary { background: rgba(51, 65, 85, .9); box-shadow: none; }
+    .ghost { background: transparent; border: 1px solid var(--border); box-shadow: none; }
+    .danger { background: rgba(127, 29, 29, .8); box-shadow: none; }
+
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 31px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: none;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.1);
+      filter: none;
+    }
+
+    .theme-toggle-icon {
+      width: 17px;
+      height: 17px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    html[data-theme="light"] .theme-toggle {
+      color: #334155;
+      background: rgba(255, 255, 255, .72);
+      border-color: rgba(15, 23, 42, .1);
+    }
+
+    html[data-theme="light"] .theme-toggle:hover {
+      background: rgba(241, 245, 249, .98);
+    }
+
+    .status {
+      margin-top: 14px;
+      padding: 13px 14px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, .7);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .status.ok { color: #86efac; border-color: rgba(34,197,94,.3); background: rgba(34,197,94,.08); }
+    .status.error { color: #fecaca; border-color: rgba(239,68,68,.3); background: rgba(239,68,68,.08); }
+    .status.warn { color: #fde68a; border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.08); }
+
+    .progress-wrap {
+      margin-top: 16px;
+      height: 11px;
+      background: rgba(15, 23, 42, .76);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #60a5fa, #22c55e);
+      transition: width .22s ease;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .toolbar strong { font-size: 18px; }
+
+    .counts {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .count-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      color: #cbd5e1;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .count-chip.ok { color: #86efac; background: var(--ok-bg); border-color: var(--ok-border); }
+    .count-chip.bad { color: #fecaca; background: var(--bad-bg); border-color: var(--bad-border); }
+    .count-chip.pending { color: #cbd5e1; background: var(--pending-bg); border-color: var(--pending-border); }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      margin: -4px 0 16px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .dot.ok { background: var(--ok); }
+    .dot.bad { background: var(--bad); }
+    .dot.pending { background: var(--pending); }
+
+    .model-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+      gap: 12px;
+    }
+
+    .model-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      padding: 13px 13px 12px;
+      min-height: 72px;
+      word-break: break-all;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      border: 1px solid var(--pending-border);
+      background: var(--pending-bg);
+      color: #cbd5e1;
+    }
+
+    .model-item::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: var(--pending);
+    }
+
+    .model-item.ok {
+      border-color: var(--ok-border);
+      background: var(--ok-bg);
+      color: #dcfce7;
+    }
+
+    .model-item.ok::before { background: var(--ok); }
+
+    .model-item.bad {
+      border-color: var(--bad-border);
+      background: var(--bad-bg);
+      color: #fee2e2;
+    }
+
+    .model-item.bad::before { background: var(--bad); }
+
+    .model-name {
+      display: block;
+      padding-left: 4px;
+      font-weight: 760;
+      line-height: 1.45;
+    }
+
+    .model-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+      padding-left: 4px;
+      color: rgba(226,232,240,.72);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      word-break: normal;
+    }
+
+    .empty {
+      padding: 24px;
+      border: 1px dashed rgba(148, 163, 184, .28);
+      border-radius: 18px;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(15, 23, 42, .42);
+    }
+
+    details { margin-top: 16px; }
+    summary { color: var(--primary); cursor: pointer; user-select: none; }
+
+    pre {
+      overflow: auto;
+      background: rgba(2, 6, 23, .55);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px;
+      padding: 14px;
+      color: #d1d5db;
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 420px;
+    }
+  
+
+    /* Light theme contrast fixes */
+    html[data-theme="light"] button {
+      color: #ffffff;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      box-shadow: 0 10px 22px rgba(37, 99, 235, .18);
+    }
+
+    html[data-theme="light"] button:hover {
+      filter: none;
+      box-shadow: 0 12px 26px rgba(37, 99, 235, .22);
+    }
+
+    html[data-theme="light"] button:disabled {
+      color: #94a3b8;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      opacity: 1;
+      box-shadow: none;
+    }
+
+    html[data-theme="light"] .secondary {
+      color: #ffffff;
+      background: #334155;
+      border: 1px solid #334155;
+      box-shadow: none;
+    }
+
+    html[data-theme="light"] .secondary:hover {
+      background: #1e293b;
+    }
+
+    html[data-theme="light"] .ghost {
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      box-shadow: none;
+    }
+
+    html[data-theme="light"] .ghost:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    html[data-theme="light"] .danger {
+      color: #ffffff;
+      background: #dc2626;
+      border: 1px solid #dc2626;
+      box-shadow: none;
+    }
+
+    html[data-theme="light"] .danger:hover {
+      background: #b91c1c;
+    }
+
+    html[data-theme="light"] .theme-toggle,
+    html[data-theme="light"] .badge {
+      color: #1e293b;
+      background: rgba(255, 255, 255, .9);
+      border-color: #dbe3ed;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
+    }
+
+    html[data-theme="light"] .theme-toggle:hover {
+      background: #ffffff;
+      border-color: #cbd5e1;
+    }
+
+    html[data-theme="light"] .count-chip {
+      color: #334155;
+      background: #ffffff;
+      border-color: #dbe3ed;
+    }
+
+    html[data-theme="light"] .count-chip.ok {
+      color: #166534;
+      background: #dcfce7;
+      border-color: #86efac;
+    }
+
+    html[data-theme="light"] .count-chip.bad {
+      color: #991b1b;
+      background: #fee2e2;
+      border-color: #fca5a5;
+    }
+
+    html[data-theme="light"] .count-chip.pending {
+      color: #334155;
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    html[data-theme="light"] .status.ok {
+      color: #166534;
+      background: #f0fdf4;
+      border-color: #86efac;
+    }
+
+    html[data-theme="light"] .status.error {
+      color: #991b1b;
+      background: #fef2f2;
+      border-color: #fca5a5;
+    }
+
+    html[data-theme="light"] .status.warn {
+      color: #92400e;
+      background: #fffbeb;
+      border-color: #fcd34d;
+    }
+
+    html[data-theme="light"] .model-item {
+      color: #334155;
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, .04);
+    }
+
+    html[data-theme="light"] .model-item::before {
+      background: #64748b;
+    }
+
+    html[data-theme="light"] .model-item.ok {
+      color: #14532d;
+      background: linear-gradient(180deg, #ecfdf5 0%, #dcfce7 100%);
+      border-color: #4ade80;
+      box-shadow: 0 8px 20px rgba(22, 163, 74, .09);
+    }
+
+    html[data-theme="light"] .model-item.ok::before {
+      background: #16a34a;
+    }
+
+    html[data-theme="light"] .model-item.bad {
+      color: #7f1d1d;
+      background: linear-gradient(180deg, #fff1f2 0%, #fee2e2 100%);
+      border-color: #f87171;
+      box-shadow: 0 8px 20px rgba(220, 38, 38, .08);
+    }
+
+    html[data-theme="light"] .model-item.bad::before {
+      background: #dc2626;
+    }
+
+    html[data-theme="light"] .model-item.ok .model-meta {
+      color: #166534;
+    }
+
+    html[data-theme="light"] .model-item.bad .model-meta {
+      color: #991b1b;
+    }
+
+    html[data-theme="light"] .model-item.pending .model-meta {
+      color: #475569;
+    }
+
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="hero">
+      <div style="margin-bottom: 2rem;">
+        <h1>AI 模型检测工具</h1>
+        <p>使用方式：输入 API_URL 和 API_KEY 后，点击“获取模型列表”。</p>
+      </div>
+      <div class="hero-actions">
+        <button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="切换主题" title="切换明暗主题">
+          <span id="themeIcon" class="theme-toggle-icon" aria-hidden="true">🌙</span>
+          <!-- <span id="themeText">暗色</span> -->
+        </button>
+        <span class="badge">Beta</span>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="grid two">
+        <div>
+          <label for="apiUrl">API_URL</label>
+          <input id="apiUrl" autocomplete="off" placeholder="如：https://api.openai.com" />
+          <div class="hint" hidden>
+            可填基础地址，也可填完整模型接口。工具会自动尝试 OpenAI-compatible、Ollama、Anthropic、Gemini 常见 HTTP 形态。
+          </div>
+        </div>
+
+        <div>
+          <label for="apiKey">API_KEY <span id="keySaved" class="saved-pill">已保存</span></label>
+          <div class="password-wrap">
+            <input id="apiKey" type="password" autocomplete="off" placeholder="sk-..." />
+            <button id="toggleKeyBtn" class="eye-btn" type="button" aria-label="显示 API_KEY" title="显示 / 隐藏 API_KEY">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+          <div class="hint" hidden>
+            输入后会保存到浏览器 localStorage。点击“清空”会同时删除本地保存内容。
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="detectBtn">获取模型列表</button>
+        <button id="copyBtn" class="secondary" disabled>复制可用模型</button>
+        <button id="stopBtn" class="ghost" disabled>停止检测</button>
+        <button id="clearBtn" class="danger">清空</button>
+      </div>
+
+      <div class="progress-wrap">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <div id="status" class="status">等待模型获取...</div>
+    </section>
+
+    <section class="card">
+      <div class="toolbar">
+        <strong>模型列表</strong>
+        <div class="counts">
+          <span id="totalCount" class="count-chip">0 个模型</span>
+          <span id="availableCount" class="count-chip ok">0 个可用</span>
+          <span id="failedCount" class="count-chip bad">0 个不可用</span>
+          <span id="pendingCount" class="count-chip pending">0 个检测中</span>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i class="dot ok"></i>可用模型</span>
+        <span><i class="dot bad"></i>不可用模型</span>
+        <span><i class="dot pending"></i>等待 / 检测中</span>
+      </div>
+
+      <textarea id="modelString" class="hidden-copy-box" readonly aria-hidden="true" tabindex="-1"></textarea>
+
+      <div id="availableList" class="model-list">
+        <div class="empty">暂无模型</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary>查看检测日志</summary>
+        <pre id="logBox">暂无</pre>
+      </details>
+      <p style="margin-top:14px;" hidden>
+        请求由 Cloudflare Pages Function 后端代理完成，前端不会直接请求 AI 服务商。
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const BACKEND_MODELS_API = "/api/models";
+    const BACKEND_CHECK_MODEL_API = "/api/check-model";
+
+    const STORAGE_KEYS = {
+      apiUrl: "ai_model_detector_api_url",
+      apiKey: "ai_model_detector_api_key",
+      theme: "ai_model_detector_theme"
+    };
+
+    const apiUrlEl = $("apiUrl");
+    const apiKeyEl = $("apiKey");
+    const toggleKeyBtn = $("toggleKeyBtn");
+    const eyeIcon = $("eyeIcon");
+    const detectBtn = $("detectBtn");
+    const copyBtn = $("copyBtn");
+    const stopBtn = $("stopBtn");
+    const clearBtn = $("clearBtn");
+    const statusEl = $("status");
+    const modelStringEl = $("modelString");
+    const modelListEl = $("availableList");
+    const totalCountEl = $("totalCount");
+    const availableCountEl = $("availableCount");
+    const failedCountEl = $("failedCount");
+    const pendingCountEl = $("pendingCount");
+    const logBox = $("logBox");
+    const progressBar = $("progressBar");
+    const themeToggleBtn = $("themeToggleBtn");
+    const themeIcon = $("themeIcon");
+
+    // 前端并发请求自己的后端接口，每个模型单独检测，页面能动态更新。
+    const CHECK_CONCURRENCY = Math.min(12, Math.max(4, navigator.hardwareConcurrency || 8));
+
+    let modelRecords = new Map();
+    let logs = [];
+    let activeControllers = new Set();
+    let shouldStop = false;
+
+    function setStatus(message, type = "") {
+      statusEl.className = "status" + (type ? " " + type : "");
+      statusEl.textContent = message;
+    }
+
+    function log(message, payload) {
+      const line = payload === undefined ? message : `${message}\n${safeStringify(payload)}`;
+      logs.push(`[${new Date().toLocaleTimeString()}] ${line}`);
+      if (logs.length > 800) logs = logs.slice(-800);
+      logBox.textContent = logs.join("\n\n");
+    }
+
+    function safeStringify(value) {
+      try { return JSON.stringify(value, null, 2); }
+      catch { return String(value); }
+    }
+
+    function saveInputToLocalStorage() {
+      localStorage.setItem(STORAGE_KEYS.apiUrl, apiUrlEl.value.trim());
+      localStorage.setItem(STORAGE_KEYS.apiKey, apiKeyEl.value.trim());
+    }
+
+    function loadInputFromLocalStorage() {
+      apiUrlEl.value = localStorage.getItem(STORAGE_KEYS.apiUrl) || "";
+      apiKeyEl.value = localStorage.getItem(STORAGE_KEYS.apiKey) || "";
+    }
+
+    function clearLocalStorage() {
+      localStorage.removeItem(STORAGE_KEYS.apiUrl);
+      localStorage.removeItem(STORAGE_KEYS.apiKey);
+      localStorage.removeItem(STORAGE_KEYS.theme);
+    }
+
+    function setTheme(theme, persist = true) {
+      const nextTheme = theme === "light" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", nextTheme);
+
+      if (persist) {
+        localStorage.setItem(STORAGE_KEYS.theme, nextTheme);
+      }
+
+      themeIcon.textContent = nextTheme === "light" ? "☀️" : "🌙";
+      themeToggleBtn.setAttribute("aria-label", nextTheme === "light" ? "切换到暗色主题" : "切换到亮色主题");
+      themeToggleBtn.setAttribute("title", nextTheme === "light" ? "切换到暗色主题" : "切换到亮色主题");
+    }
+
+    function loadTheme() {
+      const savedTheme = localStorage.getItem(STORAGE_KEYS.theme) || "dark";
+      setTheme(savedTheme, false);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+      setTheme(currentTheme === "light" ? "dark" : "light");
+    }
+
+    function setApiKeyVisible(visible) {
+      apiKeyEl.type = visible ? "text" : "password";
+      toggleKeyBtn.setAttribute("aria-label", visible ? "隐藏 API_KEY" : "显示 API_KEY");
+      eyeIcon.innerHTML = visible
+        ? `<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19C5.5 19 2 12 2 12a19.8 19.8 0 0 1 3.08-4.3"></path><path d="M9.88 9.88A3 3 0 0 0 14.12 14.12"></path><path d="M10.73 5.08A11.2 11.2 0 0 1 12 5c6.5 0 10 7 10 7a19.6 19.6 0 0 1-2.01 3.18"></path><path d="M2 2l20 20"></path>`
+        : `<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle>`;
+    }
+
+    function updateProgress(done, total) {
+      const percent = total ? Math.round((done / total) * 100) : 0;
+      progressBar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+    }
+
+    async function fetchBackendJson(url, body) {
+      if (shouldStop) throw new Error("用户已停止检测");
+
+      const controller = new AbortController();
+      activeControllers.add(controller);
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: controller.signal
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(data.error || `后端请求失败：HTTP ${res.status}`);
+        }
+
+        return data;
+      } finally {
+        activeControllers.delete(controller);
+      }
+    }
+
+    function normalizeBackendModel(item) {
+      return {
+        id: item.id || item.model || "unknown-model",
+        source: item.source || "候选模型",
+        status: item.status === "ok" ? "ok" : item.status === "bad" ? "bad" : "pending",
+        via: item.via || item.source || "等待检测",
+        error: item.error || ""
+      };
+    }
+
+    function setCandidates(models) {
+      modelRecords = new Map();
+      for (const raw of models || []) {
+        const item = normalizeBackendModel(raw);
+        modelRecords.set(item.id, {
+          ...item,
+          status: "pending",
+          via: item.source || "等待检测"
+        });
+      }
+      renderResults();
+    }
+
+    function updateModelRecord(id, patch) {
+      const old = modelRecords.get(id) || { id, status: "pending", via: "", error: "" };
+      modelRecords.set(id, { ...old, ...patch });
+      renderResults();
+    }
+
+    function renderResults() {
+      const records = [...modelRecords.values()].sort((a, b) => a.id.localeCompare(b.id));
+      const available = records.filter((item) => item.status === "ok");
+      const failed = records.filter((item) => item.status === "bad");
+      const pending = records.filter((item) => item.status === "pending");
+
+      modelStringEl.value = available.map((item) => item.id).join(",");
+      totalCountEl.textContent = `${records.length} 个模型`;
+      availableCountEl.textContent = `${available.length} 个可用`;
+      failedCountEl.textContent = `${failed.length} 个不可用`;
+      pendingCountEl.textContent = `${pending.length} 个检测中`;
+      copyBtn.disabled = available.length === 0;
+
+      modelListEl.innerHTML = "";
+
+      if (records.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "暂无模型";
+        modelListEl.appendChild(empty);
+        return;
+      }
+
+      for (const item of records) {
+        const div = document.createElement("div");
+        div.className = `model-item ${item.status === "ok" ? "ok" : item.status === "bad" ? "bad" : "pending"}`;
+        div.title = item.status === "bad" ? (item.error || "验证失败") : (item.via || item.source || "");
+
+        const name = document.createElement("span");
+        name.className = "model-name";
+        name.textContent = item.id;
+
+        const meta = document.createElement("div");
+        meta.className = "model-meta";
+
+        const status = document.createElement("span");
+        status.textContent = item.status === "ok" ? "可用" : item.status === "bad" ? "不可用" : "检测中";
+
+        const via = document.createElement("span");
+        via.textContent = item.status === "ok" ? compactText(item.via) : compactText(item.source || item.via || "候选");
+
+        meta.appendChild(status);
+        meta.appendChild(via);
+        div.appendChild(name);
+        div.appendChild(meta);
+        modelListEl.appendChild(div);
+      }
+    }
+
+    function compactText(text) {
+      if (!text) return "";
+      return text.length > 24 ? text.slice(0, 24) + "…" : text;
+    }
+
+    async function concurrentMap(items, concurrency, worker, onProgress) {
+      const results = new Array(items.length);
+      let cursor = 0;
+      let finished = 0;
+
+      async function runner(workerIndex) {
+        while (true) {
+          if (shouldStop) break;
+
+          const index = cursor++;
+          if (index >= items.length) break;
+
+          try {
+            results[index] = await worker(items[index], index, workerIndex);
+          } catch (err) {
+            const id = items[index]?.id || `index-${index}`;
+            results[index] = { id, status: "bad", error: err.message };
+            updateModelRecord(id, { status: "bad", via: "后端请求失败", error: err.message });
+            log(`不可用：${id}`, err.message);
+          } finally {
+            finished++;
+            onProgress?.(finished, items.length, index, workerIndex);
+          }
+        }
+      }
+
+      const workerCount = Math.min(concurrency, items.length);
+      await Promise.all(Array.from({ length: workerCount }, (_, i) => runner(i + 1)));
+      return results;
+    }
+
+    async function detectAvailableModels() {
+      const apiUrl = apiUrlEl.value.trim();
+      const apiKey = apiKeyEl.value.trim();
+
+      if (!apiUrl) {
+        setStatus("请先输入 API_URL。", "warn");
+        return;
+      }
+
+      saveInputToLocalStorage();
+      shouldStop = false;
+      logs = [];
+      modelRecords = new Map();
+      activeControllers = new Set();
+      renderResults();
+      updateProgress(0, 1);
+      logBox.textContent = "暂无";
+
+      detectBtn.disabled = true;
+      stopBtn.disabled = false;
+      copyBtn.disabled = true;
+
+      try {
+        setStatus("正在获取模型列表...\n第 1 步：请求 /api/models");
+        log("请求模型列表接口", { api: BACKEND_MODELS_API, apiUrl });
+        updateProgress(0, 1);
+
+        const listData = await fetchBackendJson(BACKEND_MODELS_API, { apiUrl, apiKey });
+        const candidates = listData.models || [];
+
+        if (shouldStop) {
+          setStatus("已停止检测。", "warn");
+          return;
+        }
+
+        if (candidates.length === 0) {
+          setStatus(listData.message || "没有发现候选模型，请检查 API_URL 或 API_KEY。", "error");
+          log("模型列表为空", listData);
+          return;
+        }
+
+        setCandidates(candidates);
+        updateProgress(0, candidates.length);
+        log(`获取到 ${candidates.length} 个候选模型，开始并发检测`, {
+          concurrency: CHECK_CONCURRENCY
+        });
+        setStatus(`已获取 ${candidates.length} 个候选模型。\n第 2 步：正在并发检测可用性...\n当前并发数：${CHECK_CONCURRENCY}`);
+
+        await concurrentMap(
+          candidates,
+          CHECK_CONCURRENCY,
+          async (candidate, index, workerIndex) => {
+            updateModelRecord(candidate.id, { status: "pending", via: `Worker-${workerIndex}` });
+            log(`Worker-${workerIndex} 检测：${candidate.id}`);
+
+            const result = await fetchBackendJson(BACKEND_CHECK_MODEL_API, {
+              apiUrl,
+              apiKey,
+              model: candidate.id,
+              source: candidate.source || "候选模型"
+            });
+
+            if (result.status === "ok") {
+              updateModelRecord(result.id, { status: "ok", via: result.via || "后端检测成功", error: "" });
+              log(`可用：${result.id}`, result.via || "后端检测成功");
+            } else {
+              updateModelRecord(result.id || candidate.id, { status: "bad", via: "验证失败", error: result.error || "验证失败" });
+              log(`不可用：${result.id || candidate.id}`, result.error || "验证失败");
+            }
+
+            return result;
+          },
+          (done, total) => {
+            const records = [...modelRecords.values()];
+            const ok = records.filter(item => item.status === "ok").length;
+            const bad = records.filter(item => item.status === "bad").length;
+            updateProgress(done, total);
+            setStatus(`并发检测中：${done}/${total}\n可用：${ok}，不可用：${bad}\n当前并发数：${CHECK_CONCURRENCY}`);
+          }
+        );
+
+        const records = [...modelRecords.values()];
+        const ok = records.filter(item => item.status === "ok").length;
+        const bad = records.filter(item => item.status === "bad").length;
+
+        if (shouldStop) {
+          setStatus(`已停止检测。已完成部分：可用 ${ok} 个，不可用 ${bad} 个。`, "warn");
+          return;
+        }
+
+        if (ok > 0) {
+          setStatus(`检测完成：${ok} 个模型可用，${bad} 个不可用。`, "ok");
+        } else {
+          setStatus("检测完成，但没有模型通过真实调用验证。请检查 API_URL/API_KEY、余额/权限，或模型是否支持当前接口。", "error");
+        }
+      } catch (err) {
+        if (err.name === "AbortError") {
+          setStatus("已停止检测。", "warn");
+          log("用户停止检测");
+        } else {
+          setStatus("检测失败：" + err.message, "error");
+          log("检测失败", err.stack || err.message);
+        }
+      } finally {
+        detectBtn.disabled = false;
+        stopBtn.disabled = true;
+        activeControllers.clear();
+        renderResults();
+      }
+    }
+
+    function stopDetect() {
+      shouldStop = true;
+      for (const controller of activeControllers) {
+        try { controller.abort(); } catch {}
+      }
+      activeControllers.clear();
+      setStatus("正在停止检测，已中断未完成请求...", "warn");
+    }
+
+    async function copyModels() {
+      const text = modelStringEl.value.trim();
+      if (!text) {
+        setStatus("没有可复制的可用模型。", "warn");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus("已复制可用模型字符串。", "ok");
+      } catch {
+        modelStringEl.focus();
+        modelStringEl.select();
+        const ok = document.execCommand("copy");
+        setStatus(ok ? "已复制可用模型字符串。" : "复制失败，请手动复制文本框内容。", ok ? "ok" : "error");
+      }
+    }
+
+    function clearAll() {
+      stopDetect();
+      clearLocalStorage();
+      setTheme("dark", false);
+
+      apiUrlEl.value = "";
+      apiKeyEl.value = "";
+      modelRecords = new Map();
+      logs = [];
+      renderResults();
+      updateProgress(0, 1);
+      logBox.textContent = "暂无";
+      setStatus("已清空输入内容、检测结果，并已删除 localStorage。");
+      detectBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    let saveTimer = null;
+    function scheduleSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveInputToLocalStorage, 260);
+    }
+
+    detectBtn.addEventListener("click", detectAvailableModels);
+    copyBtn.addEventListener("click", copyModels);
+    stopBtn.addEventListener("click", stopDetect);
+    clearBtn.addEventListener("click", clearAll);
+    toggleKeyBtn.addEventListener("click", () => setApiKeyVisible(apiKeyEl.type === "password"));
+    themeToggleBtn.addEventListener("click", toggleTheme);
+    apiUrlEl.addEventListener("input", scheduleSave);
+    apiKeyEl.addEventListener("input", scheduleSave);
+
+    apiUrlEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") detectAvailableModels();
+    });
+
+    apiKeyEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") detectAvailableModels();
+    });
+
+    loadTheme();
+    loadInputFromLocalStorage();
+    renderResults();
+  </script>
+
+</body>
+</html>
