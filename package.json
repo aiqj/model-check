@@ -1,11 +1,10 @@
 {
-  "name": "ai-model-checker-pages",
+  "name": "model-check",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "wrangler pages dev .",
-    "deploy": "wrangler pages deploy . --project-name ai-model-checker"
+    "dev": "wrangler pages dev public",
+    "deploy": "wrangler pages deploy public --project-name model-check"
   },
   "devDependencies": {
     "wrangler": "latest"
