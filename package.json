@@ -1,12 +1,14 @@
 {
-  "name": "model-check",
+  "name": "model-check-node",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "description": "AI 模型检测工具 Node.js 部署版，无需 Cloudflare Pages Functions",
   "scripts": {
-    "dev": "wrangler pages dev public",
-    "deploy": "wrangler pages deploy public --project-name model-check"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "devDependencies": {
-    "wrangler": "latest"
+  "engines": {
+    "node": ">=18"
   }
 }
