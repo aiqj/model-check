@@ -148,8 +148,12 @@ async function handleCheckModel(req, res) {
 
     assertSafeApiUrl(apiUrl);
 
+    const startedAt = Date.now();
     const result = await probeCandidate({ apiUrl, apiKey, model, source });
-    return sendJson(res, result);
+    return sendJson(res, {
+      ...result,
+      responseTimeMs: Date.now() - startedAt
+    });
   } catch (err) {
     return sendJson(res, { error: err.message || "服务器错误" }, 500);
   }
@@ -186,12 +190,20 @@ async function handleCheckModels(req, res) {
     const models = await concurrentMap(
       candidates,
       PROBE_CONCURRENCY,
-      candidate => probeCandidate({
-        apiUrl,
-        apiKey,
-        model: candidate.id,
-        source: candidate.source
-      })
+      async candidate => {
+        const startedAt = Date.now();
+        const result = await probeCandidate({
+          apiUrl,
+          apiKey,
+          model: candidate.id,
+          source: candidate.source
+        });
+
+        return {
+          ...result,
+          responseTimeMs: Date.now() - startedAt
+        };
+      }
     );
 
     const available = models.filter(item => item.status === "ok").map(item => item.id);

@@ -189,9 +189,16 @@
       gap: 16px;
     }
 
-    @media (min-width: 760px) {
-      /* API_URL usually shorter; API_KEY usually longer: make KEY wider on desktop. */
-      .grid.two { grid-template-columns: minmax(220px, .8fr) minmax(360px, 1.4fr); }
+    @media (min-width: 920px) {
+      .grid.credential-grid {
+        grid-template-columns: minmax(260px, 1fr) minmax(245px, .82fr) minmax(214px, .58fr);
+        align-items: end;
+      }
+    }
+
+    @media (min-width: 760px) and (max-width: 919px) {
+      .grid.credential-grid { grid-template-columns: minmax(220px, 1fr) minmax(240px, 1fr); }
+      .auto-test-field { grid-column: 2; }
     }
 
     label {
@@ -257,7 +264,7 @@
       background: var(--card2);
       color: var(--text);
       outline: none;
-      font-size: 14px;
+      font-size: 13px;
       transition: .18s ease;
     }
 
@@ -291,6 +298,59 @@
       color: var(--muted);
       font-size: 13px;
       line-height: 1.55;
+    }
+
+    .auto-test-field {
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .auto-test-toggle {
+      width: 100%;
+      min-height: 47px;
+      margin: 0;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: linear-gradient(135deg, rgba(96, 165, 250, .12), rgba(255, 255, 255, .05));
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      transition: .18s ease;
+    }
+
+    .auto-test-toggle:hover {
+      border-color: rgba(147, 197, 253, .38);
+      background: linear-gradient(135deg, rgba(96, 165, 250, .18), rgba(255, 255, 255, .07));
+      transform: translateY(-1px);
+    }
+
+    .auto-test-toggle span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 780;
+      line-height: 1.35;
+    }
+
+    .auto-test-toggle span::before {
+      content: "⚡";
+      font-size: 14px;
+    }
+
+    .auto-test-toggle input {
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      flex: 0 0 auto;
+      accent-color: #60a5fa;
+      box-shadow: none;
+      cursor: pointer;
     }
 
     .actions {
@@ -402,6 +462,69 @@
 
     .toolbar strong { font-size: 18px; }
 
+    .toolbar-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .sort-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      padding: 5px 6px 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, .2);
+      background: rgba(255, 255, 255, .055);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+    }
+
+    .sort-control::before {
+      content: "↕";
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(96, 165, 250, .14);
+      color: #bfdbfe;
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .sort-control select {
+      appearance: none;
+      min-width: 148px;
+      padding: 6px 28px 6px 10px;
+      border: 0;
+      outline: 0;
+      border-radius: 999px;
+      background:
+        linear-gradient(45deg, transparent 50%, currentColor 50%) calc(100% - 15px) 50% / 5px 5px no-repeat,
+        linear-gradient(135deg, currentColor 50%, transparent 50%) calc(100% - 10px) 50% / 5px 5px no-repeat,
+        rgba(15, 23, 42, .54);
+      color: #e2e8f0;
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .sort-control select:disabled {
+      cursor: not-allowed;
+      opacity: .62;
+    }
+
+    .sort-control select:focus-visible {
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, .28);
+    }
+
     .counts {
       display: flex;
       gap: 8px;
@@ -413,7 +536,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 10px;
+      padding: 5px 9px;
       border-radius: 999px;
       font-size: 13px;
       color: #cbd5e1;
@@ -448,65 +571,292 @@
 
     .model-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
+    }
+
+    @media (max-width: 1040px) {
+      .model-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .model-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      .model-list { grid-template-columns: 1fr; }
     }
 
     .model-item {
       position: relative;
       overflow: hidden;
-      border-radius: 16px;
-      padding: 13px 13px 12px;
-      min-height: 72px;
-      word-break: break-all;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-radius: 18px;
+      padding: 15px;
+      min-height: 104px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-size: 13px;
       border: 1px solid var(--pending-border);
-      background: var(--pending-bg);
-      color: #cbd5e1;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), var(--pending-bg);
+      color: #e2e8f0;
+      box-shadow: 0 12px 28px rgba(2, 6, 23, .14);
+      transition: transform .18s ease, box-shadow .22s ease, border-color .2s ease, background .2s ease;
+      isolation: isolate;
+    }
+
+    .model-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 34px rgba(2, 6, 23, .2);
     }
 
     .model-item::before {
       content: "";
       position: absolute;
-      inset: 0 auto 0 0;
-      width: 4px;
-      background: var(--pending);
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: linear-gradient(90deg, rgba(148, 163, 184, .78), rgba(148, 163, 184, .16));
+      z-index: 0;
+    }
+
+    .model-item::after {
+      content: "";
+      position: absolute;
+      inset: auto 18px 0;
+      height: 3px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .model-item.queued {
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)), var(--pending-bg);
+      color: #dbe6f3;
+    }
+
+    .model-item.queued::before {
+      background: linear-gradient(90deg, rgba(148, 163, 184, .74), rgba(148, 163, 184, .14));
+    }
+
+    .model-item.checking {
+      border-color: rgba(96, 165, 250, .34);
+      background: linear-gradient(180deg, rgba(96,165,250,.12), rgba(255,255,255,.03)), rgba(59, 130, 246, .08);
+      color: #dbeafe;
+      box-shadow: 0 14px 30px rgba(37, 99, 235, .16);
+    }
+
+    .model-item.checking::before {
+      background: linear-gradient(90deg, rgba(96, 165, 250, 1), rgba(191, 219, 254, .28));
+    }
+
+    .model-item.checking::after {
+      opacity: 1;
+      background: linear-gradient(90deg, rgba(96,165,250,0), rgba(96,165,250,.95), rgba(96,165,250,0));
+      animation: modelLoading 1.4s linear infinite;
     }
 
     .model-item.ok {
       border-color: var(--ok-border);
-      background: var(--ok-bg);
+      background: linear-gradient(180deg, rgba(34, 197, 94, .16), rgba(34, 197, 94, .08));
       color: #dcfce7;
+      box-shadow: 0 14px 30px rgba(22, 163, 74, .15);
     }
 
-    .model-item.ok::before { background: var(--ok); }
+    .model-item.ok::before {
+      background: linear-gradient(90deg, rgba(34, 197, 94, 1), rgba(134, 239, 172, .2));
+    }
 
     .model-item.bad {
       border-color: var(--bad-border);
-      background: var(--bad-bg);
+      background: linear-gradient(180deg, rgba(239, 68, 68, .16), rgba(239, 68, 68, .08));
       color: #fee2e2;
+      box-shadow: 0 14px 30px rgba(220, 38, 38, .14);
     }
 
-    .model-item.bad::before { background: var(--bad); }
+    .model-item.bad::before {
+      background: linear-gradient(90deg, rgba(239, 68, 68, 1), rgba(254, 202, 202, .2));
+    }
+
+    .model-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 42px;
+      position: relative;
+      z-index: 1;
+    }
 
     .model-name {
-      display: block;
-      padding-left: 4px;
-      font-weight: 760;
-      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      font-weight: 820;
+      line-height: 1.42;
+      letter-spacing: -.01em;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+      flex: 1 1 auto;
+      min-width: 0;
     }
 
-    .model-meta {
+    .model-response-time {
+      flex: 0 0 auto;
+      max-width: 96px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, .22);
+      background: rgba(15, 23, 42, .36);
+      color: rgba(226, 232, 240, .9);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, .14);
+    }
+
+    .model-item.ok .model-response-time {
+      border-color: rgba(34, 197, 94, .34);
+      background: rgba(20, 83, 45, .34);
+      color: #bbf7d0;
+    }
+
+    .model-item.bad .model-response-time {
+      border-color: rgba(248, 113, 113, .36);
+      background: rgba(127, 29, 29, .34);
+      color: #fecaca;
+    }
+
+    .model-body {
+      position: relative;
+      z-index: 1;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .model-status-chip {
+      width: fit-content;
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
-      margin-top: 10px;
-      padding-left: 4px;
-      color: rgba(226,232,240,.72);
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, .2);
+      background: rgba(15, 23, 42, .28);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 12px;
-      word-break: normal;
+      font-weight: 700;
+      line-height: 1;
+      color: inherit;
+    }
+
+    .model-status-chip::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 0 4px rgba(255,255,255,.08);
+      flex: 0 0 auto;
+    }
+
+    .model-item.queued .model-status-chip {
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, .3);
+      border-color: rgba(148, 163, 184, .2);
+    }
+
+    .model-item.checking .model-status-chip {
+      color: #bfdbfe;
+      background: rgba(30, 64, 175, .22);
+      border-color: rgba(96, 165, 250, .3);
+    }
+
+    .model-item.checking .model-status-chip::before {
+      animation: pulseDot 1.2s ease-in-out infinite;
+    }
+
+    .model-item.ok .model-status-chip {
+      color: #bbf7d0;
+      background: rgba(20, 83, 45, .24);
+      border-color: rgba(34, 197, 94, .26);
+    }
+
+    .model-item.bad .model-status-chip {
+      color: #fecaca;
+      background: rgba(127, 29, 29, .24);
+      border-color: rgba(248, 113, 113, .28);
+    }
+
+
+    .model-item-actions {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(2, 6, 23, 0) 0%, rgba(2, 6, 23, .08) 45%, rgba(2, 6, 23, .64) 100%);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+
+    .model-item:hover .model-item-actions,
+    .model-item:focus-within .model-item-actions {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .model-action-btn {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, .14);
+      border: 1px solid rgba(255, 255, 255, .18);
+      color: #f8fafc;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, .26);
+      backdrop-filter: blur(8px);
+    }
+
+    .model-action-btn:hover {
+      transform: translateY(-1px) scale(1.02);
+      filter: brightness(1.12);
+      background: rgba(255, 255, 255, .22);
+    }
+
+    .model-action-btn.danger-icon {
+      background: rgba(239, 68, 68, .2);
+      border-color: rgba(248, 113, 113, .36);
+      color: #fecaca;
+    }
+
+    .model-action-btn svg {
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+    }
+
+    @keyframes modelLoading {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(120%); }
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(.72); opacity: .7; }
     }
 
     .empty {
@@ -526,7 +876,7 @@
       background: rgba(2, 6, 23, .55);
       border: 1px solid rgba(255,255,255,.07);
       border-radius: 16px;
-      padding: 14px;
+      padding: 12px;
       color: #d1d5db;
       font-size: 12px;
       line-height: 1.5;
@@ -643,49 +993,152 @@
       border-color: #fcd34d;
     }
 
+    html[data-theme="light"] .sort-control {
+      color: #475569;
+      background: rgba(248, 250, 252, .82);
+      border-color: rgba(148, 163, 184, .32);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+    }
+
+    html[data-theme="light"] .sort-control::before {
+      color: #1d4ed8;
+      background: #dbeafe;
+    }
+
+    html[data-theme="light"] .sort-control select {
+      color: #1e293b;
+      background:
+        linear-gradient(45deg, transparent 50%, currentColor 50%) calc(100% - 15px) 50% / 5px 5px no-repeat,
+        linear-gradient(135deg, currentColor 50%, transparent 50%) calc(100% - 10px) 50% / 5px 5px no-repeat,
+        #ffffff;
+    }
+
     html[data-theme="light"] .model-item {
       color: #334155;
-      background: #f1f5f9;
-      border-color: #cbd5e1;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, .04);
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248, 250, 252, .94));
+      border-color: #d9e2ec;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+    }
+
+    html[data-theme="light"] .model-item:hover {
+      box-shadow: 0 16px 32px rgba(15, 23, 42, .1);
     }
 
     html[data-theme="light"] .model-item::before {
-      background: #64748b;
+      background: linear-gradient(90deg, #94a3b8, rgba(148, 163, 184, .18));
+    }
+
+    html[data-theme="light"] .model-item.queued {
+      color: #334155;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border-color: #d8e0ea;
+    }
+
+    html[data-theme="light"] .model-item.checking {
+      color: #1e3a8a;
+      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+      border-color: #93c5fd;
+      box-shadow: 0 12px 28px rgba(59, 130, 246, .12);
+    }
+
+    html[data-theme="light"] .model-item.checking::before {
+      background: linear-gradient(90deg, #3b82f6, rgba(147, 197, 253, .28));
     }
 
     html[data-theme="light"] .model-item.ok {
       color: #14532d;
-      background: linear-gradient(180deg, #ecfdf5 0%, #dcfce7 100%);
+      background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
       border-color: #4ade80;
-      box-shadow: 0 8px 20px rgba(22, 163, 74, .09);
+      box-shadow: 0 12px 28px rgba(22, 163, 74, .11);
     }
 
     html[data-theme="light"] .model-item.ok::before {
-      background: #16a34a;
+      background: linear-gradient(90deg, #16a34a, rgba(74, 222, 128, .22));
     }
 
     html[data-theme="light"] .model-item.bad {
       color: #7f1d1d;
       background: linear-gradient(180deg, #fff1f2 0%, #fee2e2 100%);
-      border-color: #f87171;
-      box-shadow: 0 8px 20px rgba(220, 38, 38, .08);
+      border-color: #fca5a5;
+      box-shadow: 0 12px 28px rgba(220, 38, 38, .1);
     }
 
     html[data-theme="light"] .model-item.bad::before {
-      background: #dc2626;
+      background: linear-gradient(90deg, #dc2626, rgba(252, 165, 165, .22));
     }
 
-    html[data-theme="light"] .model-item.ok .model-meta {
-      color: #166534;
+    html[data-theme="light"] .model-status-chip {
+      background: rgba(255, 255, 255, .9);
+      border-color: rgba(148, 163, 184, .26);
     }
 
-    html[data-theme="light"] .model-item.bad .model-meta {
-      color: #991b1b;
-    }
-
-    html[data-theme="light"] .model-item.pending .model-meta {
+    html[data-theme="light"] .model-item.queued .model-status-chip {
       color: #475569;
+      background: #f8fafc;
+      border-color: #d8e0ea;
+    }
+
+    html[data-theme="light"] .model-item.checking .model-status-chip {
+      color: #1d4ed8;
+      background: rgba(239, 246, 255, .95);
+      border-color: rgba(96, 165, 250, .35);
+    }
+
+    html[data-theme="light"] .model-item.ok .model-status-chip {
+      color: #166534;
+      background: rgba(240, 253, 244, .92);
+      border-color: rgba(74, 222, 128, .38);
+    }
+
+    html[data-theme="light"] .model-item.bad .model-status-chip {
+      color: #991b1b;
+      background: rgba(254, 242, 242, .95);
+      border-color: rgba(248, 113, 113, .36);
+    }
+
+
+    html[data-theme="light"] .model-response-time {
+      color: #334155;
+      background: rgba(255, 255, 255, .9);
+      border-color: rgba(148, 163, 184, .24);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+    }
+
+    html[data-theme="light"] .model-item.ok .model-response-time {
+      color: #166534;
+      background: rgba(240, 253, 244, .96);
+      border-color: rgba(34, 197, 94, .28);
+    }
+
+    html[data-theme="light"] .model-item.bad .model-response-time {
+      color: #991b1b;
+      background: rgba(254, 242, 242, .96);
+      border-color: rgba(248, 113, 113, .3);
+    }
+
+    html[data-theme="light"] .model-item-actions {
+      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(15, 23, 42, .04) 40%, rgba(15, 23, 42, .5) 100%);
+    }
+
+    html[data-theme="light"] .model-action-btn {
+      color: #ffffff;
+      background: rgba(15, 23, 42, .82);
+      border-color: rgba(255, 255, 255, .22);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, .18);
+    }
+
+    html[data-theme="light"] .model-action-btn.danger-icon {
+      color: #ffffff;
+      background: rgba(220, 38, 38, .9);
+      border-color: rgba(248, 113, 113, .5);
+    }
+
+    html[data-theme="light"] .auto-test-toggle {
+      background: linear-gradient(135deg, rgba(37, 99, 235, .08), rgba(255, 255, 255, .9));
+    }
+
+    html[data-theme="light"] .auto-test-toggle:hover {
+      background: linear-gradient(135deg, rgba(37, 99, 235, .13), rgba(255, 255, 255, .96));
     }
 
   </style>
@@ -695,7 +1148,7 @@
     <header class="hero">
       <div style="margin-bottom: 2rem;">
         <h1>AI 模型检测工具</h1>
-        <p>使用方式：输入 API_URL 和 API_KEY 后，点击“获取模型列表”。</p>
+        <p>使用方式：输入 API_URL 和 API_KEY 后，点击“获取模型列表”。默认会同时检测模型，也可取消勾选后手动点击“模型检测”。</p>
       </div>
       <div class="hero-actions">
         <button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="切换主题" title="切换明暗主题">
@@ -707,7 +1160,7 @@
     </header>
 
     <section class="card">
-      <div class="grid two">
+      <div class="grid credential-grid">
         <div>
           <label for="apiUrl">API_URL</label>
           <input id="apiUrl" autocomplete="off" placeholder="如：https://api.openai.com" />
@@ -716,7 +1169,7 @@
           </div>
         </div>
 
-        <div>
+        <div class="api-key-field">
           <label for="apiKey">API_KEY <span id="keySaved" class="saved-pill">已保存</span></label>
           <div class="password-wrap">
             <input id="apiKey" type="password" autocomplete="off" placeholder="sk-..." />
@@ -731,10 +1184,18 @@
             输入后会保存到浏览器 localStorage。点击“清空”会同时删除本地保存内容。
           </div>
         </div>
+
+        <div class="auto-test-field">
+          <label class="auto-test-toggle" for="autoCheck" title="勾选后，获取模型列表完成会立即检测当前模型是否可用">
+            <span>同时进行模型测试</span>
+            <input id="autoCheck" type="checkbox" checked />
+          </label>
+        </div>
       </div>
 
       <div class="actions">
         <button id="detectBtn">获取模型列表</button>
+        <button id="modelCheckBtn" disabled>模型检测</button>
         <button id="copyBtn" class="secondary" disabled>复制可用模型</button>
         <button id="stopBtn" class="ghost" disabled>停止检测</button>
         <button id="clearBtn" class="danger">清空</button>
@@ -749,19 +1210,29 @@
 
     <section class="card">
       <div class="toolbar">
-        <strong>模型列表</strong>
+        <div class="toolbar-title">
+          <strong>模型列表</strong>
+          <label class="sort-control" for="sortMode">
+            <span>排序</span>
+            <select id="sortMode" aria-label="模型列表排序">
+              <option value="az">A-Z</option>
+              <option value="latency-asc">响应时间：快到慢</option>
+              <option value="latency-desc">响应时间：慢到快</option>
+            </select>
+          </label>
+        </div>
         <div class="counts">
           <span id="totalCount" class="count-chip">0 个模型</span>
           <span id="availableCount" class="count-chip ok">0 个可用</span>
           <span id="failedCount" class="count-chip bad">0 个不可用</span>
-          <span id="pendingCount" class="count-chip pending">0 个检测中</span>
+          <span id="pendingCount" class="count-chip pending">0 个待处理</span>
         </div>
       </div>
 
       <div class="legend">
         <span><i class="dot ok"></i>可用模型</span>
         <span><i class="dot bad"></i>不可用模型</span>
-        <span><i class="dot pending"></i>等待 / 检测中</span>
+        <span><i class="dot pending"></i>待检测 / 检测中</span>
       </div>
 
       <textarea id="modelString" class="hidden-copy-box" readonly aria-hidden="true" tabindex="-1"></textarea>
@@ -791,20 +1262,25 @@
     const STORAGE_KEYS = {
       apiUrl: "ai_model_detector_api_url",
       apiKey: "ai_model_detector_api_key",
-      theme: "ai_model_detector_theme"
+      theme: "ai_model_detector_theme",
+      sortMode: "ai_model_detector_sort_mode",
+      autoCheck: "ai_model_detector_auto_check"
     };
 
     const apiUrlEl = $("apiUrl");
     const apiKeyEl = $("apiKey");
+    const autoCheckEl = $("autoCheck");
     const toggleKeyBtn = $("toggleKeyBtn");
     const eyeIcon = $("eyeIcon");
     const detectBtn = $("detectBtn");
+    const modelCheckBtn = $("modelCheckBtn");
     const copyBtn = $("copyBtn");
     const stopBtn = $("stopBtn");
     const clearBtn = $("clearBtn");
     const statusEl = $("status");
     const modelStringEl = $("modelString");
     const modelListEl = $("availableList");
+    const sortModeEl = $("sortMode");
     const totalCountEl = $("totalCount");
     const availableCountEl = $("availableCount");
     const failedCountEl = $("failedCount");
@@ -821,6 +1297,8 @@
     let logs = [];
     let activeControllers = new Set();
     let shouldStop = false;
+    let isBusy = false;
+    let sortMode = "az";
 
     function setStatus(message, type = "") {
       statusEl.className = "status" + (type ? " " + type : "");
@@ -842,17 +1320,22 @@
     function saveInputToLocalStorage() {
       localStorage.setItem(STORAGE_KEYS.apiUrl, apiUrlEl.value.trim());
       localStorage.setItem(STORAGE_KEYS.apiKey, apiKeyEl.value.trim());
+      localStorage.setItem(STORAGE_KEYS.autoCheck, autoCheckEl.checked ? "1" : "0");
     }
 
     function loadInputFromLocalStorage() {
       apiUrlEl.value = localStorage.getItem(STORAGE_KEYS.apiUrl) || "";
       apiKeyEl.value = localStorage.getItem(STORAGE_KEYS.apiKey) || "";
+      const savedAutoCheck = localStorage.getItem(STORAGE_KEYS.autoCheck);
+      autoCheckEl.checked = savedAutoCheck === null ? true : savedAutoCheck === "1";
     }
 
     function clearLocalStorage() {
       localStorage.removeItem(STORAGE_KEYS.apiUrl);
       localStorage.removeItem(STORAGE_KEYS.apiKey);
       localStorage.removeItem(STORAGE_KEYS.theme);
+      localStorage.removeItem(STORAGE_KEYS.sortMode);
+      localStorage.removeItem(STORAGE_KEYS.autoCheck);
     }
 
     function setTheme(theme, persist = true) {
@@ -923,7 +1406,9 @@
         source: item.source || "候选模型",
         status: item.status === "ok" ? "ok" : item.status === "bad" ? "bad" : "pending",
         via: item.via || item.source || "等待检测",
-        error: item.error || ""
+        error: item.error || "",
+        responseTimeMs: normalizeResponseTime(item),
+        startedAt: null
       };
     }
 
@@ -934,20 +1419,79 @@
         modelRecords.set(item.id, {
           ...item,
           status: "pending",
-          via: item.source || "等待检测"
+          via: item.source || "等待检测",
+          responseTimeMs: null,
+          startedAt: null
         });
       }
       renderResults();
     }
 
     function updateModelRecord(id, patch) {
-      const old = modelRecords.get(id) || { id, status: "pending", via: "", error: "" };
+      const old = modelRecords.get(id) || { id, status: "pending", via: "", error: "", responseTimeMs: null, startedAt: null };
       modelRecords.set(id, { ...old, ...patch });
       renderResults();
     }
 
+    function loadSortMode() {
+      const saved = localStorage.getItem(STORAGE_KEYS.sortMode);
+      sortMode = ["az", "latency-asc", "latency-desc"].includes(saved) ? saved : "az";
+      sortModeEl.value = sortMode;
+    }
+
+    function setSortMode(mode) {
+      sortMode = ["az", "latency-asc", "latency-desc"].includes(mode) ? mode : "az";
+      localStorage.setItem(STORAGE_KEYS.sortMode, sortMode);
+      renderResults();
+    }
+
+    function compareModelName(a, b) {
+      return String(a.id || "").localeCompare(String(b.id || ""), "en", { numeric: true, sensitivity: "base" });
+    }
+
+    function compareResponseTime(a, b, direction = "asc") {
+      const aMs = normalizeResponseTime(a);
+      const bMs = normalizeResponseTime(b);
+
+      // 未检测或检测中的模型固定靠后，避免用户按耗时排序时被空值干扰。
+      if (aMs === null && bMs === null) return compareModelName(a, b);
+      if (aMs === null) return 1;
+      if (bMs === null) return -1;
+
+      const diff = direction === "desc" ? bMs - aMs : aMs - bMs;
+      return diff || compareModelName(a, b);
+    }
+
+    function getSortedRecords(records) {
+      const nextRecords = [...records];
+
+      if (sortMode === "latency-asc") {
+        return nextRecords.sort((a, b) => compareResponseTime(a, b, "asc"));
+      }
+
+      if (sortMode === "latency-desc") {
+        return nextRecords.sort((a, b) => compareResponseTime(a, b, "desc"));
+      }
+
+      return nextRecords.sort(compareModelName);
+    }
+
+    function getModelUiState(item) {
+      if (item?.status === "ok") return "ok";
+      if (item?.status === "bad") return "bad";
+      return item?.startedAt ? "checking" : "queued";
+    }
+
+    function getModelStatusLabel(item) {
+      const state = getModelUiState(item);
+      if (state === "ok") return "可用";
+      if (state === "bad") return "不可用";
+      if (state === "checking") return "检测中";
+      return "待检测";
+    }
+
     function renderResults() {
-      const records = [...modelRecords.values()].sort((a, b) => a.id.localeCompare(b.id));
+      const records = getSortedRecords([...modelRecords.values()]);
       const available = records.filter((item) => item.status === "ok");
       const failed = records.filter((item) => item.status === "bad");
       const pending = records.filter((item) => item.status === "pending");
@@ -956,8 +1500,10 @@
       totalCountEl.textContent = `${records.length} 个模型`;
       availableCountEl.textContent = `${available.length} 个可用`;
       failedCountEl.textContent = `${failed.length} 个不可用`;
-      pendingCountEl.textContent = `${pending.length} 个检测中`;
-      copyBtn.disabled = available.length === 0;
+      pendingCountEl.textContent = `${pending.length} 个待处理`;
+      copyBtn.disabled = isBusy || available.length === 0;
+      modelCheckBtn.disabled = isBusy || records.length === 0;
+      sortModeEl.disabled = records.length === 0;
 
       modelListEl.innerHTML = "";
 
@@ -970,34 +1516,124 @@
       }
 
       for (const item of records) {
+        const uiState = getModelUiState(item);
         const div = document.createElement("div");
-        div.className = `model-item ${item.status === "ok" ? "ok" : item.status === "bad" ? "bad" : "pending"}`;
+        div.className = `model-item ${uiState}`;
         div.title = item.status === "bad" ? (item.error || "验证失败") : (item.via || item.source || "");
+
+        const header = document.createElement("div");
+        header.className = "model-header";
 
         const name = document.createElement("span");
         name.className = "model-name";
         name.textContent = item.id;
+        header.appendChild(name);
 
-        const meta = document.createElement("div");
-        meta.className = "model-meta";
+        const timeText = formatResponseTime(item);
+        if (timeText) {
+          const responseTime = document.createElement("span");
+          responseTime.className = "model-response-time";
+          responseTime.textContent = timeText;
+          responseTime.title = formatResponseTimeTitle(item);
+          header.appendChild(responseTime);
+        }
 
-        const status = document.createElement("span");
-        status.textContent = item.status === "ok" ? "可用" : item.status === "bad" ? "不可用" : "检测中";
+        const body = document.createElement("div");
+        body.className = "model-body";
 
-        const via = document.createElement("span");
-        via.textContent = item.status === "ok" ? compactText(item.via) : compactText(item.source || item.via || "候选");
+        const statusChip = document.createElement("span");
+        statusChip.className = "model-status-chip";
+        statusChip.textContent = getModelStatusLabel(item);
 
-        meta.appendChild(status);
-        meta.appendChild(via);
-        div.appendChild(name);
-        div.appendChild(meta);
+        body.appendChild(statusChip);
+
+        const actions = document.createElement("div");
+        actions.className = "model-item-actions";
+
+        const copyOneBtn = createModelActionButton({
+          title: "复制模型",
+          icon: "copy",
+          onClick: () => copySingleModel(item.id)
+        });
+
+        const deleteBtn = createModelActionButton({
+          title: "从列表移除",
+          icon: "trash",
+          danger: true,
+          onClick: () => removeModel(item.id)
+        });
+
+        actions.appendChild(copyOneBtn);
+        actions.appendChild(deleteBtn);
+        div.appendChild(header);
+        div.appendChild(body);
+        div.appendChild(actions);
         modelListEl.appendChild(div);
       }
     }
 
-    function compactText(text) {
+    function normalizeResponseTime(item) {
+      const raw = item?.responseTimeMs ?? item?.durationMs ?? item?.elapsedMs ?? item?.latencyMs;
+      const value = Number(raw);
+      return Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
+    }
+
+    function formatResponseTime(item) {
+      const ms = normalizeResponseTime(item);
+      if (ms === null) return "";
+      return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(2)}s`;
+    }
+
+    function formatResponseTimeTitle(item) {
+      const ms = normalizeResponseTime(item);
+      return ms !== null ? `模型响应时间：${formatResponseTime(item)}` : "";
+    }
+
+    function createModelActionButton({ title, icon, danger = false, onClick }) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "model-action-btn" + (danger ? " danger-icon" : "");
+      btn.title = title;
+      btn.setAttribute("aria-label", title);
+      btn.innerHTML = icon === "trash"
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+      btn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        onClick?.();
+      });
+      return btn;
+    }
+
+    async function copySingleModel(modelId) {
+      try {
+        await navigator.clipboard.writeText(modelId);
+        setStatus(`已复制模型：${modelId}`, "ok");
+      } catch {
+        const temp = document.createElement("textarea");
+        temp.value = modelId;
+        temp.style.position = "fixed";
+        temp.style.left = "-9999px";
+        document.body.appendChild(temp);
+        temp.focus();
+        temp.select();
+        const ok = document.execCommand("copy");
+        temp.remove();
+        setStatus(ok ? `已复制模型：${modelId}` : "复制失败，请手动复制模型名称。", ok ? "ok" : "error");
+      }
+    }
+
+    function removeModel(modelId) {
+      if (!modelRecords.has(modelId)) return;
+      modelRecords.delete(modelId);
+      log(`已从模型列表移除：${modelId}`);
+      renderResults();
+      setStatus(`已从模型列表移除：${modelId}`, "ok");
+    }
+
+    function compactText(text, maxLength = 24) {
       if (!text) return "";
-      return text.length > 24 ? text.slice(0, 24) + "…" : text;
+      return text.length > maxLength ? text.slice(0, maxLength) + "…" : text;
     }
 
     async function concurrentMap(items, concurrency, worker, onProgress) {
@@ -1016,8 +1652,10 @@
             results[index] = await worker(items[index], index, workerIndex);
           } catch (err) {
             const id = items[index]?.id || `index-${index}`;
-            results[index] = { id, status: "bad", error: err.message };
-            updateModelRecord(id, { status: "bad", via: "后端请求失败", error: err.message });
+            const old = modelRecords.get(id);
+            const responseTimeMs = old?.startedAt ? Date.now() - old.startedAt : null;
+            results[index] = { id, status: "bad", error: err.message, responseTimeMs };
+            updateModelRecord(id, { status: "bad", via: "后端请求失败", error: err.message, responseTimeMs, startedAt: null });
             log(`不可用：${id}`, err.message);
           } finally {
             finished++;
@@ -1031,7 +1669,7 @@
       return results;
     }
 
-    async function detectAvailableModels() {
+    async function fetchModelList() {
       const apiUrl = apiUrlEl.value.trim();
       const apiKey = apiKeyEl.value.trim();
 
@@ -1042,6 +1680,7 @@
 
       saveInputToLocalStorage();
       shouldStop = false;
+      isBusy = true;
       logs = [];
       modelRecords = new Map();
       activeControllers = new Set();
@@ -1050,19 +1689,19 @@
       logBox.textContent = "暂无";
 
       detectBtn.disabled = true;
+      modelCheckBtn.disabled = true;
       stopBtn.disabled = false;
       copyBtn.disabled = true;
 
       try {
-        setStatus("正在获取模型列表...\n第 1 步：请求 /api/models");
+        setStatus("正在获取模型列表...\n请求 /api/models");
         log("请求模型列表接口", { api: BACKEND_MODELS_API, apiUrl });
-        updateProgress(0, 1);
 
         const listData = await fetchBackendJson(BACKEND_MODELS_API, { apiUrl, apiKey });
         const candidates = listData.models || [];
 
         if (shouldStop) {
-          setStatus("已停止检测。", "warn");
+          setStatus("已停止获取模型列表。", "warn");
           return;
         }
 
@@ -1074,16 +1713,93 @@
 
         setCandidates(candidates);
         updateProgress(0, candidates.length);
-        log(`获取到 ${candidates.length} 个候选模型，开始并发检测`, {
+        setStatus(`已获取 ${candidates.length} 个模型。`, "ok");
+
+        if (listData.errors?.length) {
+          log("获取模型列表时有部分接口返回错误", listData.errors);
+        } else {
+          log(`已获取 ${candidates.length} 个候选模型`);
+        }
+
+        if (autoCheckEl.checked && !shouldStop) {
+          log("已开启：获取模型列表后同时进行模型测试");
+          await detectCurrentModels();
+        }
+      } catch (err) {
+        if (err.name === "AbortError") {
+          setStatus("已停止获取模型列表。", "warn");
+          log("用户停止获取模型列表");
+        } else {
+          setStatus("获取模型列表失败：" + err.message, "error");
+          log("获取模型列表失败", err.stack || err.message);
+        }
+      } finally {
+        isBusy = false;
+        detectBtn.disabled = false;
+        stopBtn.disabled = true;
+        activeControllers.clear();
+        renderResults();
+      }
+    }
+
+    async function detectCurrentModels() {
+      const apiUrl = apiUrlEl.value.trim();
+      const apiKey = apiKeyEl.value.trim();
+      const candidates = [...modelRecords.values()].map((item) => ({
+        id: item.id,
+        source: item.source || item.via || "候选模型"
+      }));
+
+      if (!apiUrl) {
+        setStatus("请先输入 API_URL。", "warn");
+        return;
+      }
+
+      if (candidates.length === 0) {
+        setStatus("请先获取模型列表，或保留至少 1 个待检测模型。", "warn");
+        return;
+      }
+
+      saveInputToLocalStorage();
+      shouldStop = false;
+      isBusy = true;
+      logs = [];
+      activeControllers = new Set();
+      logBox.textContent = "暂无";
+      updateProgress(0, candidates.length);
+
+      for (const candidate of candidates) {
+        updateModelRecord(candidate.id, {
+          status: "pending",
+          via: candidate.source || "等待检测",
+          error: "",
+          responseTimeMs: null,
+          startedAt: null
+        });
+      }
+
+      detectBtn.disabled = true;
+      modelCheckBtn.disabled = true;
+      stopBtn.disabled = false;
+      copyBtn.disabled = true;
+
+      try {
+        log(`开始检测当前模型列表，共 ${candidates.length} 个模型`, {
           concurrency: CHECK_CONCURRENCY
         });
-        setStatus(`已获取 ${candidates.length} 个候选模型。\n第 2 步：正在并发检测可用性...\n当前并发数：${CHECK_CONCURRENCY}`);
+        setStatus(`正在检测当前模型列表...\n共 ${candidates.length} 个模型，当前并发数：${CHECK_CONCURRENCY}`);
 
         await concurrentMap(
           candidates,
           CHECK_CONCURRENCY,
           async (candidate, index, workerIndex) => {
-            updateModelRecord(candidate.id, { status: "pending", via: `Worker-${workerIndex}` });
+            const startedAt = Date.now();
+            updateModelRecord(candidate.id, {
+              status: "pending",
+              via: `Worker-${workerIndex}`,
+              responseTimeMs: null,
+              startedAt
+            });
             log(`Worker-${workerIndex} 检测：${candidate.id}`);
 
             const result = await fetchBackendJson(BACKEND_CHECK_MODEL_API, {
@@ -1093,15 +1809,30 @@
               source: candidate.source || "候选模型"
             });
 
+            const responseTimeMs = normalizeResponseTime(result) ?? (Date.now() - startedAt);
+
             if (result.status === "ok") {
-              updateModelRecord(result.id, { status: "ok", via: result.via || "后端检测成功", error: "" });
-              log(`可用：${result.id}`, result.via || "后端检测成功");
+              updateModelRecord(result.id, {
+                status: "ok",
+                via: result.via || "后端检测成功",
+                error: "",
+                responseTimeMs,
+                startedAt: null
+              });
+              log(`可用：${result.id}`, `${result.via || "后端检测成功"}，响应时间 ${formatResponseTime({ responseTimeMs })}`);
             } else {
-              updateModelRecord(result.id || candidate.id, { status: "bad", via: "验证失败", error: result.error || "验证失败" });
-              log(`不可用：${result.id || candidate.id}`, result.error || "验证失败");
+              updateModelRecord(result.id || candidate.id, {
+                status: "bad",
+                via: "验证失败",
+                error: result.error || "验证失败",
+                responseTimeMs,
+                startedAt: null
+              });
+              log(`不可用：${result.id || candidate.id}`, `${result.error || "验证失败"}
+响应时间 ${formatResponseTime({ responseTimeMs })}`);
             }
 
-            return result;
+            return { ...result, responseTimeMs };
           },
           (done, total) => {
             const records = [...modelRecords.values()];
@@ -1135,6 +1866,7 @@
           log("检测失败", err.stack || err.message);
         }
       } finally {
+        isBusy = false;
         detectBtn.disabled = false;
         stopBtn.disabled = true;
         activeControllers.clear();
@@ -1153,19 +1885,22 @@
 
     async function copyModels() {
       const text = modelStringEl.value.trim();
-      if (!text) {
+      const availableCount = [...modelRecords.values()].filter((item) => item.status === "ok").length;
+      const successMessage = `已复制 ${availableCount} 个可用模型`;
+
+      if (!text || availableCount === 0) {
         setStatus("没有可复制的可用模型。", "warn");
         return;
       }
 
       try {
         await navigator.clipboard.writeText(text);
-        setStatus("已复制可用模型字符串。", "ok");
+        setStatus(successMessage, "ok");
       } catch {
         modelStringEl.focus();
         modelStringEl.select();
         const ok = document.execCommand("copy");
-        setStatus(ok ? "已复制可用模型字符串。" : "复制失败，请手动复制文本框内容。", ok ? "ok" : "error");
+        setStatus(ok ? successMessage : "复制失败，请手动复制文本框内容。", ok ? "ok" : "error");
       }
     }
 
@@ -1176,8 +1911,12 @@
 
       apiUrlEl.value = "";
       apiKeyEl.value = "";
+      autoCheckEl.checked = true;
       modelRecords = new Map();
       logs = [];
+      sortMode = "az";
+      sortModeEl.value = sortMode;
+      isBusy = false;
       renderResults();
       updateProgress(0, 1);
       logBox.textContent = "暂无";
@@ -1192,25 +1931,29 @@
       saveTimer = setTimeout(saveInputToLocalStorage, 260);
     }
 
-    detectBtn.addEventListener("click", detectAvailableModels);
+    detectBtn.addEventListener("click", fetchModelList);
+    modelCheckBtn.addEventListener("click", detectCurrentModels);
     copyBtn.addEventListener("click", copyModels);
     stopBtn.addEventListener("click", stopDetect);
     clearBtn.addEventListener("click", clearAll);
     toggleKeyBtn.addEventListener("click", () => setApiKeyVisible(apiKeyEl.type === "password"));
     themeToggleBtn.addEventListener("click", toggleTheme);
+    sortModeEl.addEventListener("change", () => setSortMode(sortModeEl.value));
     apiUrlEl.addEventListener("input", scheduleSave);
     apiKeyEl.addEventListener("input", scheduleSave);
+    autoCheckEl.addEventListener("change", saveInputToLocalStorage);
 
     apiUrlEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") detectAvailableModels();
+      if (e.key === "Enter") fetchModelList();
     });
 
     apiKeyEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") detectAvailableModels();
+      if (e.key === "Enter") fetchModelList();
     });
 
     loadTheme();
     loadInputFromLocalStorage();
+    loadSortMode();
     renderResults();
   </script>
 
